@@ -14,6 +14,10 @@ struct ContentView: View {
         HStack {
             List(store.pocketBlocks) { block in
                 Text(block.text)
+                    .frame(height: 30)
+                    .background(.green)
+                    .cornerRadius(5)
+                    .padding(2)
             }
             .frame(width: 200)
 
@@ -28,19 +32,28 @@ struct ContentView: View {
                             .cornerRadius(5)
                             .padding(2)
                             .offset(
-                                x: block.frame.midX - geometry.size.width/2,
-                                y: block.frame.midY - geometry.size.height/2
+                                x: block.frame.midX - geometry.size.width/2 + store.canvasOffset.x,
+                                y: block.frame.midY - geometry.size.height/2 + store.canvasOffset.y
                             )
                     }
                 }
+                .gesture(
+                    DragGesture()
+                        .onChanged { gesture in
+                            store.onDragChanged(value: gesture)
+                        }
+                        .onEnded { gesture in
+                            store.onDragEnded(value: gesture)
+                        }
+                )
                 .onTapGesture(count: 2, perform: { location in
                     store.createBlockOnTap(point: location)
                 })
                 .onTapGesture(count: 1, perform: { location in
                     store.activateBlockIfPossible(
                         point: CGPoint(
-                            x: location.x, //+ geometry.size.width/2,
-                            y: location.y //+ geometry.size.height/2
+                            x: location.x - store.canvasOffset.x, //+ geometry.size.width/2,
+                            y: location.y - store.canvasOffset.y //+ geometry.size.height/2
                         )
                     )
                 })
