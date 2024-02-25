@@ -7,7 +7,12 @@
 
 import SwiftUI
 
-struct Block: Identifiable {
+struct PocketBlock: Identifiable {
+    let id: UInt64
+    let text: String
+}
+
+struct CanvasBlock: Identifiable {
     let id: UInt64
     let text: String
     let frame: CGRect
