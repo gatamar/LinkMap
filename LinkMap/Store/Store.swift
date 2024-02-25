@@ -12,9 +12,10 @@ private let logger = Logger(subsystem: "com.gatamar.LinkMap", category: "Store")
 
 class Store: ObservableObject {
     private var nextId: UInt64 = 6
-    @Published var pocketBlocks: [PocketBlock] = []
-    @Published var canvasBlocks: [CanvasBlock] = []
-    @Published var connections: [Connection] = []
+    @Published private(set) var activeBlockId: UInt64?
+    @Published private(set) var pocketBlocks: [PocketBlock] = []
+    @Published private(set) var canvasBlocks: [CanvasBlock] = []
+    @Published private(set) var connections: [Connection] = []
     
     func loadAllMindMapStuff() {
         pocketBlocks = [
@@ -33,10 +34,7 @@ class Store: ObservableObject {
     }
     
     func activateBlockIfPossible(point: CGPoint) {
-        logger.error("activateBlockIfPossible not implemented")
-        // find the block which might be active
-        // set active block id for self
-        // update the ui to show active block differently
+        activeBlockId = canvasBlocks.filter { $0.frame.contains(point) }.first?.id
     }
 
     func createBlockOnTap(point: CGPoint) {

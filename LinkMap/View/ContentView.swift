@@ -24,7 +24,7 @@ struct ContentView: View {
                     ForEach(store.canvasBlocks) { block in
                         Text(block.text)
                             .frame(width: block.frame.width, height: block.frame.height)
-                            .background(.purple)
+                            .background(block.id == store.activeBlockId ? .orange : .blue)
                             .cornerRadius(5)
                             .padding(2)
                             .offset(
@@ -37,7 +37,12 @@ struct ContentView: View {
                     store.createBlockOnTap(point: location)
                 })
                 .onTapGesture(count: 1, perform: { location in
-                    store.activateBlockIfPossible(point: location)
+                    store.activateBlockIfPossible(
+                        point: CGPoint(
+                            x: location.x, //+ geometry.size.width/2,
+                            y: location.y //+ geometry.size.height/2
+                        )
+                    )
                 })
             }
         }
