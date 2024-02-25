@@ -36,13 +36,30 @@ class Store: ObservableObject {
         logger.error("loadAllMindMapStuff not implemented")
     }
     
+    private func findBlockIfAny(under absoluteLocation: CGPoint) -> EntityID? {
+        canvasBlocks.filter { $0.frame.contains(absoluteLocation) }.first?.id
+    }
+    
     func activateBlockIfPossible(point: CGPoint) {
-        activeBlockId = canvasBlocks.filter { $0.frame.contains(point) }.first?.id
+        let absoluteLocation = CGPoint(
+            x: point.x - canvasOffset.x,
+            y: point.y - canvasOffset.y
+        )
+        activeBlockId = findBlockIfAny(under: absoluteLocation)
     }
     
     func createBlockOnTap(point: CGPoint) {
         canvasBlocks.append(
-            .init(id: nextId, text: "So here we have quite a long link", frame: .init(x: point.x-50, y: point.y - 15, width: 100, height: 30))
+            .init(
+                id: nextId,
+                text: "So here we have quite a long link",
+                frame: .init(
+                    x: point.x - 50 - canvasOffset.x,
+                    y: point.y - 15 - canvasOffset.y,
+                    width: 100,
+                    height: 30
+                )
+            )
         )
         nextId += 1
     }
@@ -51,19 +68,44 @@ class Store: ObservableObject {
     func onDragChanged(value: DragGesture.Value) {
         switch dragState {
         case .none:
-            dragState = .canvas(translation: value.translation)
-            canvasOffset = CGPoint(
-                x: canvasOffset.x + value.translation.width,
-                y: canvasOffset.y + value.translation.height
+            let absoluteLocation = CGPoint(
+                x: value.location.x - canvasOffset.x,
+                y: value.location.y - canvasOffset.y
             )
+            if let blockId = findBlockIfAny(under: absoluteLocation) {
+                dragState = .block(id: blockId, translation: value.translation)
+                canvasBlocks = canvasBlocks.map({ block in
+                    guard block.id == blockId else {
+                        return block
+                    }
+                    return block.shifted(by: value.translation)
+                })
+            } else {
+                dragState = .canvas(translation: value.translation)
+                canvasOffset = CGPoint(
+                    x: canvasOffset.x + value.translation.width,
+                    y: canvasOffset.y + value.translation.height
+                )
+            }
         case .canvas(let prevTranslation):
             dragState = .canvas(translation: value.translation)
             canvasOffset = CGPoint(
                 x: canvasOffset.x - prevTranslation.width + value.translation.width,
                 y: canvasOffset.y - prevTranslation.height + value.translation.height
             )
-        case .block(let id):
-            break
+        case .block(let id, let prevTranslation):
+            dragState = .block(id: id, translation: value.translation)
+            canvasBlocks = canvasBlocks.map({ block in
+                guard block.id == id else {
+                    return block
+                }
+                return block.shifted(
+                    by: CGSize(
+                        width: value.translation.width - prevTranslation.width,
+                        height: value.translation.height - prevTranslation.height
+                    )
+                )
+            })
         }
     }
     
@@ -75,5 +117,11 @@ class Store: ObservableObject {
 private enum DragState {
     case none
     case canvas(translation: CGSize)
-    case block(id: EntityID)
+    case block(id: EntityID, translation: CGSize)
+}
+
+private extension CanvasBlock {
+    func shifted(by offset: CGSize) -> Self {
+        .init(id: id, text: text, frame: CGRect(origin: CGPoint(x: frame.minX + offset.width, y: frame.minY + offset.height), size: frame.size))
+    }
 }

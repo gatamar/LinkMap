@@ -52,8 +52,8 @@ struct ContentView: View {
                 .onTapGesture(count: 1, perform: { location in
                     store.activateBlockIfPossible(
                         point: CGPoint(
-                            x: location.x - store.canvasOffset.x, //+ geometry.size.width/2,
-                            y: location.y - store.canvasOffset.y //+ geometry.size.height/2
+                            x: location.x,
+                            y: location.y
                         )
                     )
                 })
