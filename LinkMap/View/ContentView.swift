@@ -10,6 +10,8 @@ import os
 
 struct ContentView: View {
     @ObservedObject var store: Store = Store()
+    @Binding var isGridVisible: Bool
+
     var body: some View {
         HStack {
             List(store.pocketBlocks) { block in
@@ -24,7 +26,10 @@ struct ContentView: View {
             GeometryReader { geometry in
                 ZStack {
                     Rectangle()
+                    
                     GridLayer(geometry: geometry)
+                        .opacity(isGridVisible ? 1 : 0)
+                    
                     ForEach(store.canvasBlocks) { block in
                         Text(block.text)
                             .frame(width: block.frame.width, height: block.frame.height)
@@ -35,6 +40,13 @@ struct ContentView: View {
                                 x: block.frame.midX - geometry.size.width/2 + store.canvasOffset.x,
                                 y: block.frame.midY - geometry.size.height/2 + store.canvasOffset.y
                             )
+//                            .overlay {
+//                                Text("🔗")
+//                                    .offset(
+//                                        x: -10 + block.frame.minX - geometry.size.width/2 + store.canvasOffset.x,
+//                                        y: block.frame.midY - geometry.size.height/2 + store.canvasOffset.y
+//                                    )
+//                            }
                     }
                 }
                 .gesture(
@@ -63,8 +75,4 @@ struct ContentView: View {
             store.loadAllMindMapStuff()
         })
     }
-}
-
-#Preview {
-    ContentView()
 }
